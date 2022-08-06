@@ -44,6 +44,8 @@ from sklearn.metrics import confusion_matrix
 from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score
 
 #DIABETES Analysis
+#The Diabetes Dataset is only meant to test the working of the ML models in python 
+#We have trained the same on various ML models and compared them consequently to test the precision anmd accuracy of them
 #Reading Data
 diabetes_data = pd.read_csv( 'diabetes.csv')
 diabetes_data.head()
@@ -53,8 +55,7 @@ diabetes_data.head()
 
 import matplotlib.pyplot as plt
 fig, axes = plt.subplots( nrows=4, ncols=2 )
-( ageHist, pregHist, glucoseHist, bldPressHist, triThickHist
- , insulHist, bmiHist, pedigrHist ) = axes.flatten()
+( ageHist, pregHist, glucoseHist, bldPressHist, triThickHist, insulHist, bmiHist, pedigrHist ) = axes.flatten()
 fig.set_size_inches( 16, 9 )
 
 ageHist.hist( diabetes_data[ "Age" ] )
@@ -85,8 +86,7 @@ plt.tight_layout()
 plt.show()
 
 #Using log function to normalise the skwed fields
-diabetes_data = diabetes_data.assign( log_Age = lambda x: 
-                                 np.log( x[ 'Age' ] ) )
+diabetes_data = diabetes_data.assign( log_Age = lambda x: np.log( x[ 'Age' ] ) )
 
 diabetes_data = diabetes_data.assign( zscore_glucose = zscore( diabetes_data[ 'PlasmaGlucose' ] ) )
 diabetes_data = diabetes_data.assign( zscore_pressure = zscore( diabetes_data[ 'DiastolicBloodPressure' ] ) )
@@ -96,28 +96,26 @@ diabetes_data = diabetes_data.assign( zscore_bmi = zscore( diabetes_data[ 'BMI' 
 
 scaler = MinMaxScaler()
 
-minMaxData = pd.DataFrame( scaler.fit_transform( diabetes_data.loc[ :, [ 'Pregnancies','DiabetesPedigree' ] ] )
-                         , columns = [ 'minMaxPreg', 'minMaxPedigree' ] )
+minMaxData = pd.DataFrame( scaler.fit_transform( diabetes_data.loc[ :, [ 'Pregnancies','DiabetesPedigree' ] ] ), columns = [ 'minMaxPreg', 'minMaxPedigree' ] )
 diabetes_data = pd.concat( [ diabetes_data, minMaxData ], axis = 1, join = 'inner' )
 diabetes_data.head()
 
 #Training and Testing Data
+#Using all features currently
 train, test = train_test_split( diabetes_data, test_size = 0.3 )
-features = [ "log_Age", "zscore_glucose", "zscore_pressure", "zscore_thick"
-            , "zscore_insulin", "zscore_bmi", "minMaxPreg", "minMaxPedigree" ]
+features = [ "log_Age", "zscore_glucose", "zscore_pressure", "zscore_thick", "zscore_insulin", "zscore_bmi", "minMaxPreg", "minMaxPedigree" ]
 X_train = train[ features ]
 Y_train = train[ "Diabetic" ]
 X_test = test[ features ]
 Y_test = test[ "Diabetic" ]
 
-bdt = AdaBoostClassifier( DecisionTreeClassifier( max_depth = 4 )
-                         , algorithm="SAMME"
-                         , n_estimators=200 )
+bdt = AdaBoostClassifier( DecisionTreeClassifier( max_depth = 4 ) , algorithm="SAMME", n_estimators=200 )
 dt = bdt.fit( X_train, Y_train )
 Y_pred = dt.predict( X_test )
 Y_probas = dt.predict_proba( X_test )
 # score the model on the test data
 
+#This function is meant to compare Score the model based on the test data (from the original dataset) and the predicted data
 def scoreModel( Y_test, Y_pred ):
     # show accuracy, precision and recall
     from sklearn.metrics import accuracy_score
@@ -156,6 +154,7 @@ RF_clf =  RandomForestClassifier(max_depth=5, n_estimators=15, max_features=8)
 RF_clf.fit(X_train, Y_train)
 RF_clf.score(X_test,Y_test)
 
+##################################################################################################
 
 #HEART DISEASE
 #Reading data
@@ -220,15 +219,13 @@ plt.show()
 heart_data.describe().T.style.bar(subset=['mean'], color='#208ff2')\
                             .background_gradient(subset=['std'], cmap='Reds')
 
-
 sns.countplot(heart_data['target'])
-print(pd.concat( [heart_data['target'].value_counts(),
-                  heart_data['target'].value_counts(normalize=True).mul(100).round(2)],
+print(pd.concat( [heart_data['target'].value_counts(), heart_data['target'].value_counts(normalize=True).mul(100).round(2)],
                  axis = 1,
                  keys = ('Count', 'Percentage')))
 
 #Testing for all parameters
-# Splitting into predictor and target variables
+#Splitting into predictor and target variables
 x_full = heart_data.drop('target', axis = 1)
 y_full = heart_data['target']
 
@@ -255,7 +252,7 @@ heatmap = sns.heatmap(heart_data.corr()[['target']].sort_values(by='target', asc
                       cmap=sns.diverging_palette(5, 5, as_cmap=True))
 heatmap.set_title('Features Correlating with Target', fontdict={'fontsize':18}, pad=16)
 
-#Convert categoricals into dummies
+#Convert categorical variables into dummies
 categorical_val = []
 continous_val = []
 for column in heart_data.columns:
@@ -270,15 +267,12 @@ dataset.head()
 corr_data = heart_data.drop(['target'], axis = 1)
 corrmat = corr_data.corr()
 f, ax = plt.subplots(figsize=(10, 10))
-sns.heatmap(corrmat, 
-            vmin = -1, 
-            vmax= 1, 
-            square = True, 
-            annot = True,
+sns.heatmap(corrmat, vmin = -1, vmax= 1, square = True, annot = True,
             cmap=sns.diverging_palette(5, 5, as_cmap=True));
 
 from sklearn.preprocessing import StandardScaler
 
+#Basic transformations for the better fit of the variables
 s_sc = StandardScaler()
 col_to_scale = ['age', 'thalach', 'oldpeak', 'trestbps','chol']
 dataset[col_to_scale] = s_sc.fit_transform(dataset[col_to_scale])
@@ -297,8 +291,7 @@ y_full = dataset['target']
 x_train, x_test, y_train, y_test = train_test_split(
     x_full, y_full, test_size = 0.3, random_state = 42)
 
-print('Train data records: %d \nTest data records: %d' 
-      % (x_train.shape[0], x_test.shape[0]))
+print('Train data records: %d \nTest data records: %d' % (x_train.shape[0], x_test.shape[0]))
 
 logistic_model =LogisticRegression(max_iter = 1000)
 logistic_model.fit(x_train, y_train)
